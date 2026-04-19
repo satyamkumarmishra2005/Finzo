@@ -1,5 +1,6 @@
 package com.Finzo.user_service.service.impl;
 
+import com.Finzo.user_service.dto.CreateRequest;
 import com.Finzo.user_service.model.User;
 import com.Finzo.user_service.repository.UserRepository;
 import com.Finzo.user_service.service.UserService;
@@ -16,12 +17,12 @@ public class UserServiceImpl implements UserService {
    private final UserRepository userRepository;
 
     @Override
-    public User createUser(User user) {
-        Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
+    public User createUser(CreateRequest createRequest) {
+        Optional<User> userOptional = userRepository.findByEmail(createRequest.getEmail());
         if(userOptional.isPresent()){
             throw new RuntimeException("User Already Exists With This Email id");
         }
-        return userRepository.save(user);
+        return userRepository.save(createRequest);
 
     }
 
