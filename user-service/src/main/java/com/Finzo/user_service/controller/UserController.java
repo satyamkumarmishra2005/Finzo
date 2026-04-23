@@ -39,6 +39,11 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.Deleted);
     }
 
+    @DeleteMapping("/users")
+    public ResponseEntity<Void> deleteAllUsers(){
+        userService.deleteAllUsers();
+        return new ResponseEntity<>(HttpStatus.Deleted);
+    }
 
 
 
