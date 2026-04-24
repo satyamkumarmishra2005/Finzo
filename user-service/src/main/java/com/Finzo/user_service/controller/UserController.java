@@ -19,8 +19,9 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(@RequestBody CreateRequest createRequest){
-        UserResponse userResponse = userService.createUser(createRequest);
-
+        User user = userService.createUser(createRequest);
+        UserResponse userResponse = new UserResponse(user.getId(), user.getEmail(), user.getRole());
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
     }
 
     @GetMapping("/user/{id}")
@@ -36,13 +37,19 @@ public class UserController {
     @DeleteMapping("/user/{id}")
     public ResponseEntity<Void> deleteUserById(@PathVariable Long id){
         userService.deleteUserById(id);
-        return new ResponseEntity<>(HttpStatus.Deleted);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/users")
     public ResponseEntity<Void> deleteAllUsers(){
         userService.deleteAllUsers();
-        return new ResponseEntity<>(HttpStatus.Deleted);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PutMapping("/user/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody CreateRequest updateRequest){
+        User updatedUser = userService.updateUser(id, updateRequest);
+        return ResponseEntity.ok(updatedUser);
     }
 
 
