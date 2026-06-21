@@ -44,7 +44,10 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
                         .verifyWith(secretKey)
                         .build()
                         .parseSignedClaims(jwt)
+                        .getHeader()
+                        .isPayloadEncoded()
                         .getPayload();
+
 
                 String email = String.valueOf(claims.get("email"));
                 String authorities = String.valueOf(claims.get("authorities"));
@@ -58,7 +61,7 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
             }
         }
 
-        filterChain.doFilter(request, response);
+        filterChain.Filter(request, response);
 
     }
 

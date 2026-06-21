@@ -35,6 +35,7 @@ public class jwtService {
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + ApplicationConstants.JWT_EXPIRATION_MS)) // Token valid for 1 hour
                 .signWith(secretKey)
+                .setHeaderParam("typ", "JWT")
                 .compact();
     }
 
