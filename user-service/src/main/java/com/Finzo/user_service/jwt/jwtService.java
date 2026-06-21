@@ -28,7 +28,7 @@ public class jwtService {
                 .collect(Collectors.joining(","));
 
         return Jwts.builder()
-                .issuer("Finzo")
+                .issuer("finzo")
                 .subject("JWT Token")
                 .claim("email", authentication.getName())
                 .claim("authorities", authorities)
