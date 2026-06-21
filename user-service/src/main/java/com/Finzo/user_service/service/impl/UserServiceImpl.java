@@ -22,8 +22,11 @@ public class UserServiceImpl implements UserService {
         if(userOptional.isPresent()){
             throw new RuntimeException("User Already Exists With This Email id");
         }
-        return userRepository.save(createRequest);
-
+        User user = new User();
+        user.setEmail(createRequest.getEmail());
+        user.setPassword(createRequest.getPassword());
+        user.setRole(createRequest.getRole());
+        return userRepository.save(user);
     }
 
     @Override
@@ -34,5 +37,36 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+    
+    @Override
+    public void deleteUserById(Long id) {
+        if(!userRepository.existsById(id)){
+            throw new RuntimeException("User not found with id: " + id);
+        }
+        userRepository.deleteById(id);
+    }
+    
+    @Override
+    public void deleteAllUsers() {
+        userRepository.deleteAll();
+    }
+    
+    @Override
+    public User updateUser(Long id, CreateRequest updateRequest) {
+        User existingUser = userRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        
+        if(updateRequest.getEmail() != null){
+            existingUser.setEmail(updateRequest.getEmail());
+        }
+        if(updateRequest.getPassword() != null){
+            existingUser.setPassword(updateRequest.getPassword());
+        }
+        if(updateRequest.getRole() != null){
+            existingUser.setRole(updateRequest.getRole());
+        }
+        
+        return userRepository.save(existingUser);
     }
 }
