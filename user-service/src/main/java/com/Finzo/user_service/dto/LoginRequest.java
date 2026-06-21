@@ -11,10 +11,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LoginRequest {
 
-    @NotBlank
+
     @Email
     String email;
 
-    @NotBlank
     String password;
 }

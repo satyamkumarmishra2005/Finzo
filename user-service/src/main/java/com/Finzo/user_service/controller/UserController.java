@@ -33,6 +33,19 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<Void> deleteUserById(@PathVariable Long id){
+        userService.deleteUserById(id);
+        return new ResponseEntity<>(HttpStatus.Deleted);
+    }
+
+    @DeleteMapping("/users")
+    public ResponseEntity<Void> deleteAllUsers(){
+        userService.deleteAllUsers();
+        return new ResponseEntity<>(HttpStatus.Deleted);
+    }
+
+
 
 }
 
