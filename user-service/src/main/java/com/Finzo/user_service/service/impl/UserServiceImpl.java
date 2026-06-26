@@ -5,6 +5,7 @@ import com.Finzo.user_service.model.User;
 import com.Finzo.user_service.repository.UserRepository;
 import com.Finzo.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public class UserServiceImpl implements UserService {
    private final UserRepository userRepository;
 
     @Override
-    public User createUser(CreateRequest createRequest) {
+    public ResponseEntity<User> createUser(CreateRequest createRequest) {
         Optional<User> userOptional = userRepository.findByEmail(createRequest.getEmail());
         if(userOptional.isPresent()){
             throw new RuntimeException("User Already Exists With This Email id");
@@ -27,7 +28,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserById(Long id) {
+    public ResponseEntity<User> getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(()-> new RuntimeException("User not found"));
     }
 
