@@ -28,13 +28,14 @@ public class jwtService {
                 .collect(Collectors.joining(","));
 
         return Jwts.builder()
-                .issuer("Finzo")
+                .issuer("finzo")
                 .subject("JWT Token")
                 .claim("email", authentication.getName())
                 .claim("authorities", authorities)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + ApplicationConstants.JWT_EXPIRATION_MS)) // Token valid for 1 hour
                 .signWith(secretKey)
+                .setHeaderParam("typ", "JWT")
                 .compact();
     }
 

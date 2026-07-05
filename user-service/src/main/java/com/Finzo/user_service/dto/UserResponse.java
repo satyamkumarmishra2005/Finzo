@@ -12,4 +12,5 @@ public class UserResponse {
     String name;
     String email;
     Long id;
+    String password;
 }

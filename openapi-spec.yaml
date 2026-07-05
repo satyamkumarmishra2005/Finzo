@@ -1,0 +1,519 @@
+openapi: 3.0.3
+info:
+  title: Finzo User Service API
+  description: |
+    Finzo User Service API provides endpoints for user management, authentication,
+    file operations, and administrative functions.
+    
+    **WARNING**: This API contains multiple security vulnerabilities for testing purposes.
+  version: 1.0.0
+  contact:
+    name: Finzo Support
+    email: support@finzo.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+  - url: https://api.finzo.com/api
+    description: Production server
+
+tags:
+  - name: Users
+    description: User management operations
+  - name: Admin
+    description: Administrative operations
+  - name: Files
+    description: File upload and download operations
+  - name: Authentication
+    description: Authentication and authorization
+
+paths:
+  /users/register:
+    post:
+      tags:
+        - Users
+      summary: Register a new user
+      description: Creates a new user account in the system
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid input
+        '409':
+          description: User already exists
+
+  /users/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticates user and returns JWT token
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  user:
+                    $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Invalid credentials
+
+  /admin/users/search:
+    get:
+      tags:
+        - Admin
+      summary: Search users (VULNERABLE - SQL Injection)
+      description: |
+        **SECURITY VULNERABILITY**: This endpoint is vulnerable to SQL injection attacks.
+        The username parameter is directly concatenated into SQL query.
+      operationId: searchUsers
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "john' OR '1'='1"
+      responses:
+        '200':
+          description: Search results
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /admin/users/{userId}:
+    delete:
+      tags:
+        - Admin
+      summary: Delete user (VULNERABLE - No Auth Check)
+      description: |
+        **SECURITY VULNERABILITY**: This endpoint has no authentication or authorization checks.
+        Anyone can delete any user.
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User deleted
+
+  /admin/backup:
+    post:
+      tags:
+        - Admin
+      summary: Backup database (VULNERABLE - Command Injection)
+      description: |
+        **SECURITY VULNERABILITY**: This endpoint is vulnerable to command injection.
+        The filename parameter is passed directly to system command.
+      operationId: backupDatabase
+      parameters:
+        - name: filename
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "backup.sql; rm -rf /"
+      responses:
+        '200':
+          description: Backup created
+
+  /admin/logs:
+    get:
+      tags:
+        - Admin
+      summary: Get logs (VULNERABLE - Path Traversal)
+      description: |
+        **SECURITY VULNERABILITY**: This endpoint is vulnerable to path traversal attacks.
+        Can read any file on the system.
+      operationId: getLogs
+      parameters:
+        - name: logfile
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "../../etc/passwd"
+      responses:
+        '200':
+          description: Log content
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /admin/admin-login:
+    post:
+      tags:
+        - Admin
+      summary: Admin login (VULNERABLE - Hardcoded Credentials)
+      description: |
+        **SECURITY VULNERABILITY**: Uses hardcoded credentials and exposes API key.
+      operationId: adminLogin
+      parameters:
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Admin access granted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /admin/import-data:
+    post:
+      tags:
+        - Admin
+      summary: Import data (VULNERABLE - Insecure Deserialization)
+      description: |
+        **SECURITY VULNERABILITY**: Deserializes untrusted data without validation.
+      operationId: importData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              description: Base64 encoded serialized Java object
+      responses:
+        '200':
+          description: Data imported
+
+  /admin/process-xml:
+    post:
+      tags:
+        - Admin
+      summary: Process XML (VULNERABLE - XXE)
+      description: |
+        **SECURITY VULNERABILITY**: XML parser doesn't disable external entities (XXE).
+      operationId: processXML
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: XML processed
+
+  /admin/encrypt:
+    post:
+      tags:
+        - Admin
+      summary: Encrypt data (VULNERABLE - Weak Crypto)
+      description: |
+        **SECURITY VULNERABILITY**: Uses weak DES encryption algorithm.
+      operationId: encryptData
+      parameters:
+        - name: data
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Encrypted data
+
+  /admin/ldap-search:
+    get:
+      tags:
+        - Admin
+      summary: LDAP search (VULNERABLE - LDAP Injection)
+      description: |
+        **SECURITY VULNERABILITY**: LDAP query built with string concatenation.
+      operationId: ldapSearch
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "*)(uid=*))(|(uid=*"
+      responses:
+        '200':
+          description: Search completed
+
+  /admin/generate-token:
+    get:
+      tags:
+        - Admin
+      summary: Generate token (VULNERABLE - Weak Random)
+      description: |
+        **SECURITY VULNERABILITY**: Uses insecure random number generator.
+      operationId: generateToken
+      responses:
+        '200':
+          description: Token generated
+
+  /admin/users/update:
+    put:
+      tags:
+        - Admin
+      summary: Update user (VULNERABLE - Mass Assignment)
+      description: |
+        **SECURITY VULNERABILITY**: No validation, allows setting any field including privileged ones.
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User updated
+
+  /files/upload:
+    post:
+      tags:
+        - Files
+      summary: Upload file (VULNERABLE - Unrestricted Upload)
+      description: |
+        **SECURITY VULNERABILITY**: No file type validation or size limits.
+      operationId: uploadFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded
+
+  /files/download:
+    get:
+      tags:
+        - Files
+      summary: Download file (VULNERABLE - Path Traversal)
+      description: |
+        **SECURITY VULNERABILITY**: No path validation, can download any file.
+      operationId: downloadFile
+      parameters:
+        - name: filename
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "../../etc/passwd"
+      responses:
+        '200':
+          description: File downloaded
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /files/fetch-url:
+    get:
+      tags:
+        - Files
+      summary: Fetch URL (VULNERABLE - SSRF)
+      description: |
+        **SECURITY VULNERABILITY**: Server-Side Request Forgery - can access internal resources.
+      operationId: fetchURL
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "http://169.254.169.254/latest/meta-data/"
+      responses:
+        '200':
+          description: URL content
+
+  /files/redirect:
+    get:
+      tags:
+        - Files
+      summary: Redirect (VULNERABLE - Open Redirect)
+      description: |
+        **SECURITY VULNERABILITY**: Unvalidated redirect to any URL.
+      operationId: redirect
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "http://evil.com/phishing"
+      responses:
+        '302':
+          description: Redirect
+
+  /files/delete:
+    delete:
+      tags:
+        - Files
+      summary: Delete file (VULNERABLE - Arbitrary File Deletion)
+      description: |
+        **SECURITY VULNERABILITY**: Can delete any file on the system.
+      operationId: deleteFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "C:/Windows/System32/config/sam"
+      responses:
+        '200':
+          description: File deleted
+
+  /files/extract-zip:
+    post:
+      tags:
+        - Files
+      summary: Extract ZIP (VULNERABLE - ZIP Slip)
+      description: |
+        **SECURITY VULNERABILITY**: No path validation during extraction (ZIP slip attack).
+      operationId: extractZip
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: ZIP extracted
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        password:
+          type: string
+          format: password
+          example: Password123!
+        role:
+          type: string
+          enum: [USER, ADMIN, SUPER_ADMIN]
+          example: USER
+        isAdmin:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          example: johndoe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: Password123!
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: johndoe
+        password:
+          type: string
+          format: password
+          example: Password123!
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT authentication token
+
+security:
+  - bearerAuth: []
